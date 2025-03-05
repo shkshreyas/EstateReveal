@@ -1,12 +1,8 @@
-"use client";
-
-import { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -15,6 +11,7 @@ import {
   Wifi, Utensils, Tv, Wind, Waves, Trees, 
   Footprints, ShieldCheck, Ruler
 } from 'lucide-react';
+import ClientOnly from '@/components/client-only';
 
 // Mock data for properties
 const properties = [
@@ -116,19 +113,12 @@ const properties = [
   }
 ];
 
-const PropertyDetailPage = () => {
-  const params = useParams();
-  const propertyId = parseInt(params.id as string);
+// Server Component
+export default function PropertyPage({ params }: any) {
+  const propertyId = parseInt(params.id);
   
   // Find the property with the matching ID
   const property = properties.find(p => p.id === propertyId) || properties[0];
-  
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-  };
   
   const formatPrice = (price: number, type: string) => {
     if (type === "For Rent") {
@@ -141,12 +131,14 @@ const PropertyDetailPage = () => {
     <div className="container mx-auto px-4 py-24">
       {/* Back Button */}
       <div className="mb-6">
-        <Button variant="ghost" asChild className="pl-0">
-          <Link href="/properties">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Properties
-          </Link>
-        </Button>
+        <ClientOnly>
+          <Button variant="ghost" asChild className="pl-0">
+            <Link href="/properties">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Properties
+            </Link>
+          </Button>
+        </ClientOnly>
       </div>
       
       {/* Property Header */}
@@ -173,23 +165,26 @@ const PropertyDetailPage = () => {
           <p className="text-3xl font-bold text-primary mb-2">
             {formatPrice(property.price, property.type)}
           </p>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={toggleFavorite}>
-              <Heart className={isFavorite ? "fill-red-500 text-red-500" : ""} />
-            </Button>
-            <Button variant="outline" size="icon">
-              <Share2 />
-            </Button>
-          </div>
+          
+          <ClientOnly>
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" disabled>
+                <Heart />
+              </Button>
+              <Button variant="outline" size="icon" disabled>
+                <Share2 />
+              </Button>
+            </div>
+          </ClientOnly>
         </div>
       </div>
       
-      {/* Property Images */}
+      {/* Property Images - Fixed to use the first image */}
       <div className="mb-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 relative rounded-lg overflow-hidden" style={{ height: '500px' }}>
             <Image
-              src={property.images[selectedImageIndex]}
+              src={property.images[0]}
               alt={property.title}
               fill
               className="object-cover"
@@ -199,9 +194,8 @@ const PropertyDetailPage = () => {
             {property.images.slice(0, 4).map((image, index) => (
               <div 
                 key={index} 
-                className={`relative rounded-lg overflow-hidden cursor-pointer ${selectedImageIndex === index ? 'ring-4 ring-primary' : ''}`}
+                className={`relative rounded-lg overflow-hidden ${index === 0 ? 'ring-4 ring-primary' : ''}`}
                 style={{ height: '120px' }}
-                onClick={() => setSelectedImageIndex(index)}
               >
                 <Image
                   src={image}
@@ -434,7 +428,7 @@ const PropertyDetailPage = () => {
       </div>
     </div>
   );
-};
+}
 
 // Helper function to get icon for feature
 const getFeatureIcon = (feature: string) => {
@@ -478,14 +472,10 @@ const getAmenityIcon = (type: string) => {
   return typeMap[type] || <MapPin className="h-5 w-5 text-primary" />;
 };
 
-export default PropertyDetailPage;
-
 // This function defines what static pages to generate for dynamic routes
 export async function generateStaticParams() {
-  // Replace these hard-coded ids with real property ids if needed.
   return [
     { id: '1' },
-    { id: '2' },
-    { id: '3' }
+    { id: '2' }
   ];
 }
