@@ -479,3 +479,13 @@ const getAmenityIcon = (type: string) => {
 };
 
 export default PropertyDetailPage;
+
+// This function defines what static pages to generate for dynamic routes
+export async function generateStaticParams() {
+  // Replace these hard-coded ids with real property ids if needed.
+  return [
+    { id: '1' },
+    { id: '2' },
+    { id: '3' }
+  ];
+}
